@@ -99,7 +99,7 @@ def find_best_feature(label_entropy, node_array):
             countHigh += 1
             sameHighArray.append(each.feature)
     if countHigh >= 2:
-        random_select = randrange(len(node_array)-1)
+        random_select = randrange(len(sameHighArray)-1)
         featName = sameHighArray[random_select]
 
 
