@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from random import randrange
 
 
 def read_data(type):
@@ -81,16 +82,33 @@ def count_feature_vals(in_node, in_data):
                 in_node.pneg +=1
 
 
-def find_best_feature(data):
+def find_best_feature(label_entropy, node_array):
     temphigh = 0
-    curr_entropy = 0
+    curr_entropy = 1
     featName = None
-    for each in data:
+    countHigh = 0
+    sameHighArray = []
+
+    for each in node_array:
         temp_entropy = entropy(each.ppos, each.pneg)
-        if temp_entropy > curr_entropy:
+        if temp_entropy < curr_entropy:
             curr_entropy = temp_entropy
             featName = each.feature  #name of feature
-    return featName
+        if temp_entropy <= curr_entropy:
+            featName = each.feature  #name of feature
+            countHigh += 1
+            sameHighArray.append(each.feature)
+    if countHigh >= 2:
+        random_select = randrange(len(node_array)-1)
+        featName = sameHighArray[random_select]
+
+
+    for each in node_array:
+        if each.feature == featName:
+            gain = information_gain(label_entropy, curr_entropy)
+            print("GAIN = ")
+            print(gain)
+    return featName #NOTE: By choosing the feature with the least entropy we will get the highest gain!
 
 
     return 0
@@ -113,7 +131,6 @@ class node:
         self.ppos = ppos
         self.pneg = pneg
 
-#def delete_node()
 
 
 if __name__ == "__main__":
@@ -143,15 +160,20 @@ if __name__ == "__main__":
             deletenode = node
     my_nodes.remove(deletenode)
 
+    while True:
     
-    next_feature = find_best_feature(my_nodes)
+        next_feature = find_best_feature(target_entropy, my_nodes)
 
-    print(next_feature)
+        print("Next Feature = ")
+        print(next_feature)
+        print("\n")
+        
+        for node in my_nodes:
+            if node.feature == next_feature:
+                #target_entropy = entropy(node.ppos, node.pneg)
+                deletenode = node
+        my_nodes.remove(deletenode)
+    
 
-
-            #partition values
-
-
-    # print(enum_features(train_data))
 
 # Color,Type,Origin,Stolen
