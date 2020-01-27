@@ -157,12 +157,16 @@ if __name__ == "__main__":
     for node in my_nodes:
         if node.feature == "Stolen":
             target_entropy = entropy(node.ppos, node.pneg)
-            deletenode = node
-    my_nodes.remove(deletenode)
+            #deletenode = node
+    #my_nodes.remove(deletenode)
 
-    while True:
+    mytree = []
+
+    while len(my_nodes) != 0:
     
         next_feature = find_best_feature(target_entropy, my_nodes)
+
+        #! In here we can check the entropy...or gains
 
         print("Next Feature = ")
         print(next_feature)
@@ -171,9 +175,46 @@ if __name__ == "__main__":
         for node in my_nodes:
             if node.feature == next_feature:
                 #target_entropy = entropy(node.ppos, node.pneg)
+                mytree.append(node)
                 deletenode = node
         my_nodes.remove(deletenode)
-    
 
+    i = 0
+    test_data = ['Red', 'SUV', 'Domestic', 'Yes']
+    while i < len(mytree) - 1:
+    
+        #! Possible only need this block and get rid of the above while and below code
+        for i,test in enumerate(test_data):
+            if test == mytree[i].pposName or test == mytree[i].pnegName:
+                #*Need to use majority here
+                # Need a testdata entropy function that follows the nodes
+                # As we calculate each entropy see if it would happen
+                pass
+            else:
+                print("Unknown")
+
+
+
+        
+        next_feature = find_best_feature(target_entropy, mytree)
+
+        #! In here we can check the entropy...or gains
+
+        print("Next Feature = ")
+        print(next_feature)
+        print("\n")
+        
+        for node in mytree:
+            if node.feature == next_feature:
+                #target_entropy = entropy(node.ppos, node.pneg)
+                mytree.append(node)
+                deletenode = node
+        mytree.remove(deletenode)
+
+    
+#Next We can save the node array to a different array in the order that is supposed to go
+
+
+#Then when we get test data, we can just compare at each node
 
 # Color,Type,Origin,Stolen
