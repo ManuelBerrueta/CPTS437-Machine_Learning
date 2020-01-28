@@ -48,16 +48,19 @@ def information_gain(S, A):
 
 
 class Node:
-    def __init__(self, feature_name, feature, leftNode, rightNode):
+    def __init__(self, feature_name, feature, leftNode, rightNode, data):
         self.feature_name = feature_name
         self.feature = feature
         self.leftNode = leftNode
         self.rightNode = rightNode
+        self.data = data
 
 
 class Leaf:
-    def __init__(self, value):
+    def __init__(self, value, count, data):
         self.value = value
+        self.count
+        self.data
 
 
 class Feature:
@@ -189,9 +192,9 @@ def init_tree(in_data, features, label):
 
     #! Once a feature is used we must calculate to see who has the majority and we will go down that way
     #! The other becomes a Leaf if it's 0?
-    id3_decision_tree(in_data, label, feature_array)
     
-    return 0
+    
+    return id3_decision_tree(in_data, label, feature_array)
 
 
 def id3_decision_tree(in_data, Target_Attribute, feature_array):
@@ -202,16 +205,73 @@ def id3_decision_tree(in_data, Target_Attribute, feature_array):
     #! Make a node with this feature, need to remove feature from data set
     for thisFeature in feature_array:
         if thisFeature.feature_name == next_feature:
-            my_tree = Node(thisFeature.feature_name, thisFeature, 0, 0)
+            my_tree = Node(thisFeature.feature_name, thisFeature, 0, 0, in_data)
             deleteThisFeature = thisFeature
     
     #! I need to make the calculation of majority to make one of them a leaf and the other one
     #! the next feature
-    
+    #! Need to ask a question based on the majority of the values
+    #! ie if majorite of this feature is SUV, then this will be left branches and
+    #! we gather that data and split it that side with the rest of those features?
+    #! Because the majority of this would be left
+    leftCount = deleteThisFeature.ppos
+    leftBranchValue = deleteThisFeature.pposName
+    rightCount = deleteThisFeature.pneg
+    rightBranchValue = deleteThisFeature.pnegName
+
     feature_array.remove(deleteThisFeature)
     
+    #TODO: It looks like I need to recalculate things before going further...
+    #TODO: We have to filter out the data for each branch by splitting the data in to 2 parts
+    #! First part is the data that belongs to the left branch for the first node is type
+    #! the majority will be sport, so we divide that data by left will be filtered out sport
+    #! right will be filtered out SUV
 
-    return 0
+    #* Splits the data for the left  & right branches
+    leftData = []
+    rightData = []
+    for eachRow in in_data:
+        if leftBranchValue in eachRow:
+            leftData.append(list(eachRow))
+        else:
+            rightData.append(list(eachRow))
+
+    print(leftData)
+    print("\n\n")
+    print(rightData)
+
+    #TODO: Need to remove the current feature we took out from each side data
+    #TODO: Need to recalculate array for each branch
+    for eachRow in leftData:
+        if leftBranchValue in eachRow: eachRow.remove(leftBranchValue)
+
+    for eachRow in rightData:
+        if rightBranchValue in eachRow: eachRow.remove(rightBranchValue)
+
+    print(leftData)
+    print("\n\n")
+    print(rightData)
+
+    leftFeatArray = build_data_set(leftData, 0)
+    rightFeatArray = build_data_set(rightData, 0)
+
+
+    if leftCount == 0:
+        thisLeaf = Leaf(leftBranchValue, leftCount, leftData)
+        my_tree.leftNode = thisLeaf
+    else:
+        my_tree.leftNode = id3_decision_tree(leftData, Target_Attribute, leftFeatArray)
+
+    if rightCount == 0:
+        thisLeaf = Leaf(rightBranchValue, rightCount, rightData)
+        my_tree.rightNode = thisLeaf
+    else:
+        my_tree.rightNode = id3_decision_tree(rightData, Target_Attribute, rightFeatArray)
+
+    return my_tree
+
+#! Traversing the tree will involve checking if type is node or leaf
+    
 
 
 # This will become my build tree
