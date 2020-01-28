@@ -2,8 +2,7 @@ import numpy as np
 import math
 from random import randrange
 
-
-
+Label_Entropy = 1
 
 def read_data(type):
     if type == "train":
@@ -19,8 +18,8 @@ def read_data(type):
 
 # Entropy(S)
 def entropy(p_pos, p_neg):
-    pp = p_pos / (float)(p_pos + p_neg)
-    pn = p_neg / (float)(p_pos + p_neg)
+    pp = float(p_pos) / float(p_pos + p_neg)
+    pn = float(p_neg) / float(p_pos + p_neg)
 
     if pp == 0:
         left = 0
@@ -49,11 +48,12 @@ def information_gain(S, A):
 
 
 class Node:
-    def __init__(self, feat_name, feature, leftNode, rightNode):
-        self.feat_name = feat_name
+    def __init__(self, feature_name, feature, leftNode, rightNode):
+        self.feature_name = feature_name
         self.feature = feature
         self.leftNode = leftNode
         self.rightNode = rightNode
+        self.test
 
 
 class Leaf:
@@ -62,10 +62,10 @@ class Leaf:
 
 
 class Feature:
-    def __init__(self, pposName, pnegName, feature, ppos, pneg, my_entropy):
+    def __init__(self, pposName, pnegName, feature_name, ppos, pneg, my_entropy):
         self.pposName = pposName
         self.pnegName = pnegName
-        self.feature = feature
+        self.feature_name = feature_name
         self.ppos = ppos
         self.pneg = pneg
         self.my_entropy = my_entropy
@@ -130,12 +130,12 @@ def find_next_feature(in_data, header):
         tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 1)
         # Calculate how many of each attribute
         count_feature_vals(tempFeature, in_data);
-        featureArray.append(tempFeature)
-https://cablehaunt.com/
-
-
+        # Calculate entropy of this attribute
         temp_entropy = entropy(tempFeature.ppos, tempFeature.pneg)
         tempFeature.my_entropy = temp_entropy
+
+        featureArray.append(tempFeature)
+
         if temp_entropy < curr_entropy:
             curr_entropy = temp_entropy
             featName = tempFeature.feature  #name of feature
@@ -159,7 +159,7 @@ https://cablehaunt.com/
             #if I can take out the label_entropy out of info_gain
             # or make a different function for this
             # I could also calculate the label_entropy inside info gain or independently after this function
-            gain = information_gain(label_entropy, curr_entropy)
+            gain = information_gain(Label_Entropy, curr_entropy)
             print("GAIN = ")
             print(gain)
     print("next Feature = " + featName)
@@ -167,26 +167,55 @@ https://cablehaunt.com/
 
     #! We may need to keep track of which features have been chosen or delete them as we go?
 
+def build_data_set(in_data, features):
+    """Grabs the data and builds feature object out of it. 
+        Returns list with all the features"""
+    num_of_features = len(in_data[0])
+    featureArray = []
 
-    return 0
+    # This loop enumerates the features, creates a feature object, and for each attribute in the feature object
+    # it counts the number it appears in the data and associates it to its name
+    for eachFeature in range(num_of_features):
+        # Enumerates the attributes for each feature
+        feature_values = set([each_row[eachFeature] for each_row in in_data])
+        feature_values = list(feature_values)
+        # Initilizing feature
+        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 1)
+        # Calculate how many of each attribute
+        count_feature_vals(tempFeature, in_data);
+        # Calculate entropy of this attribute
+        temp_entropy = entropy(tempFeature.ppos, tempFeature.pneg)
+        tempFeature.my_entropy = temp_entropy
+        featureArray.append(tempFeature)
 
-def init_tree(indata, features):
-    root_node = None
+    return featureArray
+
+
+def init_tree(indata, features, label):
+    global Label_Entropy
     next_feature = None
-    label_entropy = 1
+    feature_array = None
+    
+    #*0 Build the data set
+    feature_array = build_data_set(indata, features)
 
     #* 1. Calculate entropy of Target Label
+    for eachFeature in feature_array:
+        if eachFeature.feature_name == label:
+            Label_Entropy = eachFeature.my_entropy
+            break
 
-    next_feature = find_next_feature(indata, features)
+    
 
-
+    #id3_decision_tree
+    
     return 0
 
 
 def id3_decision_tree(Examples, Target_Attribute, Features):
-    return 0
+    
+    next_feature = find_next_feature(indata, features)
 
-def get_values(data):
     return 0
 
 
@@ -199,14 +228,14 @@ if __name__ == "__main__":
     header = ["Color", "Type", "Origin", "Stolen"]
     train_data = read_data("train")
     
-    mytree = init_tree(train_data, header)
+    mytree = init_tree(train_data, header, target_label)
 
     
 
 
-    my_features = split_data(train_data, header)
+"""     my_features = split_data(train_data, header)
     for feature in my_features:
-        count_feature_vals(feature, train_data)
+        count_feature_vals(feature, train_data) """
 
 
 
