@@ -2,7 +2,7 @@ import numpy as np
 import math
 from random import randrange
 
-Label_Entropy = 1
+Label_Entropy = 1.0
 
 def read_data(type):
     if type == "train":
@@ -53,7 +53,6 @@ class Node:
         self.feature = feature
         self.leftNode = leftNode
         self.rightNode = rightNode
-        self.test
 
 
 class Leaf:
@@ -68,7 +67,7 @@ class Feature:
         self.feature_name = feature_name
         self.ppos = ppos
         self.pneg = pneg
-        self.my_entropy = my_entropy
+        self.my_entropy = float(my_entropy)
 
 
 
@@ -110,52 +109,33 @@ def count_feature_vals(in_feature, in_data):
                 in_feature.pneg +=1
 
 
-def find_next_feature(in_data, header):
-    temphigh = 0
-    num_of_features = len(in_data[0]) - 1
-    curr_entropy = 1
+def find_next_feature(in_data, featureArray):
+    curr_entropy = 2
     featName = None
     countHigh = 0
     sameHighArray = []
 
-    featureArray = []
-
-    # This loop enumerates the features, creates a feature object, and for each attribute in the feature object
-    # it counts the number it appears in the data and associates it to its name
-    for eachFeature in range(num_of_features):
-        # Enumerates the attributes for each feature
-        feature_values = set([each_row[eachFeature] for each_row in in_data])
-        feature_values = list(feature_values)
-        # Initilizing feature
-        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 1)
-        # Calculate how many of each attribute
-        count_feature_vals(tempFeature, in_data);
-        # Calculate entropy of this attribute
-        temp_entropy = entropy(tempFeature.ppos, tempFeature.pneg)
-        tempFeature.my_entropy = temp_entropy
-
-        featureArray.append(tempFeature)
+    for eachFeature in featureArray:
+        temp_entropy = eachFeature.my_entropy
 
         if temp_entropy < curr_entropy:
             curr_entropy = temp_entropy
-            featName = tempFeature.feature  #name of feature
+            featName = eachFeature.feature_name  #name of feature
         elif temp_entropy == curr_entropy:
-            featName = tempFeature.feature  #name of feature
+            featName = eachFeature.feature_name  #name of feature
             countHigh += 1
-            sameHighArray.append(tempFeature.feature)
+            sameHighArray.append(eachFeature.feature_name)
     
     #* In the case there is more than one feature with the same entropy,
     #* randomly choose one
     if countHigh >= 2:
         random_select = randrange(len(sameHighArray)-1)
         featName = sameHighArray[random_select]
-
-    #! Need to calculate label_entropy
     
 
     # Print features and gains just for debugging
-    for each in featureArray:
-        if each.feature == featName:
+    for eachFeature in featureArray:
+        if eachFeature.feature_name == featName:
             #if I can take out the label_entropy out of info_gain
             # or make a different function for this
             # I could also calculate the label_entropy inside info gain or independently after this function
@@ -163,7 +143,7 @@ def find_next_feature(in_data, header):
             print("GAIN = ")
             print(gain)
     print("next Feature = " + featName)
-    return featName #NOTE: By choosing the feature with the least entropy we will get the highest gain!
+    return gain, featName #NOTE: By choosing the feature with the least entropy we will get the highest gain!
 
     #! We may need to keep track of which features have been chosen or delete them as we go?
 
@@ -180,7 +160,7 @@ def build_data_set(in_data, features):
         feature_values = set([each_row[eachFeature] for each_row in in_data])
         feature_values = list(feature_values)
         # Initilizing feature
-        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 1)
+        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 2.0)
         # Calculate how many of each attribute
         count_feature_vals(tempFeature, in_data);
         # Calculate entropy of this attribute
@@ -191,30 +171,45 @@ def build_data_set(in_data, features):
     return featureArray
 
 
-def init_tree(indata, features, label):
+def init_tree(in_data, features, label):
     global Label_Entropy
     next_feature = None
     feature_array = None
     
     #*0 Build the data set
-    feature_array = build_data_set(indata, features)
+    feature_array = build_data_set(in_data, features)
 
     #* 1. Calculate entropy of Target Label
     for eachFeature in feature_array:
         if eachFeature.feature_name == label:
             Label_Entropy = eachFeature.my_entropy
             break
+        
+    #* 2
 
-    
-
-    #id3_decision_tree
+    #! Once a feature is used we must calculate to see who has the majority and we will go down that way
+    #! The other becomes a Leaf if it's 0?
+    id3_decision_tree(in_data, label, feature_array)
     
     return 0
 
 
-def id3_decision_tree(Examples, Target_Attribute, Features):
+def id3_decision_tree(in_data, Target_Attribute, feature_array):
     
-    next_feature = find_next_feature(indata, features)
+    gain, next_feature = find_next_feature(in_data, feature_array)
+
+    deleteThisFeature = None
+    #! Make a node with this feature, need to remove feature from data set
+    for thisFeature in feature_array:
+        if thisFeature.feature_name == next_feature:
+            my_tree = Node(thisFeature.feature_name, thisFeature, 0, 0)
+            deleteThisFeature = thisFeature
+    
+    #! I need to make the calculation of majority to make one of them a leaf and the other one
+    #! the next feature
+    
+    feature_array.remove(deleteThisFeature)
+    
 
     return 0
 
