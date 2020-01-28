@@ -62,12 +62,13 @@ class Leaf:
 
 
 class Feature:
-    def __init__(self, pposName, pnegName, feature, ppos, pneg):
+    def __init__(self, pposName, pnegName, feature, ppos, pneg, my_entropy):
         self.pposName = pposName
         self.pnegName = pnegName
         self.feature = feature
         self.ppos = ppos
         self.pneg = pneg
+        self.my_entropy = my_entropy
 
 
 
@@ -124,34 +125,47 @@ def find_next_feature(in_data, header):
     for eachFeature in range(num_of_features):
         # Enumerates the attributes for each feature
         feature_values = set([each_row[eachFeature] for each_row in in_data])
-        feature_values = (list)feature_values
+        feature_values = list(feature_values)
         # Initilizing feature
-        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0)
+        tempFeature = Feature(feature_values[0], feature_values[1], header[eachFeature], 0, 0, 1)
         # Calculate how many of each attribute
         count_feature_vals(tempFeature, in_data);
         featureArray.append(tempFeature)
+https://cablehaunt.com/
 
 
-
-        temp_entropy = entropy(each.ppos, each.pneg)
+        temp_entropy = entropy(tempFeature.ppos, tempFeature.pneg)
+        tempFeature.my_entropy = temp_entropy
         if temp_entropy < curr_entropy:
             curr_entropy = temp_entropy
-            featName = each.feature  #name of feature
-        if temp_entropy <= curr_entropy:
-            featName = each.feature  #name of feature
+            featName = tempFeature.feature  #name of feature
+        elif temp_entropy == curr_entropy:
+            featName = tempFeature.feature  #name of feature
             countHigh += 1
-            sameHighArray.append(each.feature)
+            sameHighArray.append(tempFeature.feature)
+    
+    #* In the case there is more than one feature with the same entropy,
+    #* randomly choose one
     if countHigh >= 2:
         random_select = randrange(len(sameHighArray)-1)
         featName = sameHighArray[random_select]
 
+    #! Need to calculate label_entropy
+    
 
-    for each in node_array:
+    # Print features and gains just for debugging
+    for each in featureArray:
         if each.feature == featName:
+            #if I can take out the label_entropy out of info_gain
+            # or make a different function for this
+            # I could also calculate the label_entropy inside info gain or independently after this function
             gain = information_gain(label_entropy, curr_entropy)
             print("GAIN = ")
             print(gain)
+    print("next Feature = " + featName)
     return featName #NOTE: By choosing the feature with the least entropy we will get the highest gain!
+
+    #! We may need to keep track of which features have been chosen or delete them as we go?
 
 
     return 0
