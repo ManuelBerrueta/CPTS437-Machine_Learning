@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "C:\\Users\\0siris\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
+    "python.analysis.watchSearchPaths": true,
+    "python.autoComplete.extraPaths": ["./src"]
+}
