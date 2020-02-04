@@ -1,9 +1,16 @@
+import random
+
 class ScrappKNN():
     def fit(self, X_train, y_train):
-        pass
+        self.X_train = X_train
+        self.y_train = y_train
 
-    def predict(self, X_test):
-        pass
+    def predict(self, X_test): #NOTE: X_test is a list of lists
+        predictions = []
+        for row in X_test: #each row contains the features for one example
+            label = random.choice(self.y_train) #randomly pick a label from training data
+            predictions.append(label)
+        return predictions
 
 
 
