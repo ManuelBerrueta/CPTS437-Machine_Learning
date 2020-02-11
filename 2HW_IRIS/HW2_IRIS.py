@@ -36,11 +36,43 @@ clfTree = tree.DecisionTreeClassifier()
 clfTree.fit(X_trainfeatures, y_traininglabels)
 import matplotlib.pyplot as plt
 tree.plot_tree(clfTree.fit(X_testfeatures, y_testlabels))
+clfTree.predict(X_testfeatures)
 plt.show()
+clfTree.score(X_testfeatures, y_testlabels)
 
 # clfTree.predict(X_testfeatures, y_testlabels)
 
+#! Logistic Regression
+from sklearn.linear_model import LogisticRegression
+#clfLogRegx = LogisticRegression(random_state=0).fit(X, y)
+clfLogReg = LogisticRegression()
+clfLogReg.fit(X_trainfeatures, y_traininglabels)
+clfLogReg.predict(X_testfeatures)
+clfLogReg.score(X_testfeatures, y_testlabels)
 
+
+#! KNN
+from sklearn.neighbors import KNeighborsClassifier
+clfKNN = KNeighborsClassifier()
+clfKNN.fit(X_trainfeatures, y_traininglabels)
+clfKNN.predict(X_testfeatures)
+clfKNN.score(X_testfeatures, y_testlabels)
+
+
+#! Perceptron
+from sklearn.linear_model import Perceptron
+clfPerceptron = Perceptron()
+clfPerceptron.score(X_testfeatures, y_testlabels)
+clfPerceptron.predict(X_testfeatures)
+clfPerceptron.score(X_testfeatures, y_testlabels)
+
+
+#! SVM
+from sklearn import svm
+clfSVM = svm.SVC()
+clfSVM.fit(X_trainfeatures, y_traininglabels)
+clfSVM.predict(X_testfeatures)
+clfSVM.score(X_testfeatures, y_testlabels)
 
 
 import matplotlib.pyplot as plt
@@ -62,3 +94,7 @@ ax.scatter(xx, yy, zz, c=c_pred, marker='s', edgecolors='k', linewidth=0.2)
 
 # you will want to enhance the plot with a legend and axes titles
 plt.show()
+
+
+
+ax.legend()
