@@ -19,8 +19,8 @@ print(iris.target_names)
 #print(iris.target[0])
 
 # Print data set
-#for eachFlower in range(len(iris.target)):
-#    print("Example %d: label %s, features %s" % (eachFlower, iris.target[eachFlower], iris.data[eachFlower]))
+for eachFlower in range(len(iris.target)):
+    print("Example %d: label %s, features %s" % (eachFlower, iris.target[eachFlower], iris.data[eachFlower]))
 
 # Training data - removing the test data
 train_target = np.delete(iris.target, test_idx)
@@ -41,7 +41,7 @@ print(clf.predict(test_data))
 # Vizualizing tree
 
 tree.plot_tree(clf.fit(iris.data, iris.target))
-from sklearn.externals.six import StringIO
+""" from sklearn.externals.six import StringIO
 import graphviz
 import pydot
 dot_data = tree.export_graphviz(clf, out_file=None, 
@@ -50,9 +50,9 @@ dot_data = tree.export_graphviz(clf, out_file=None,
                      filled=True, rounded=True,  
                      special_characters=True)  
 graph = graphviz.Source(dot_data)  
-graph
+graph """
 
 #import graphviz 
-dot_data = tree.export_graphviz(clf, out_file=None) 
+""" dot_data = tree.export_graphviz(clf, out_file=None) 
 graph = graphviz.Source(dot_data) 
-graph.render("iris")
+graph.render("iris") """

@@ -13,6 +13,11 @@ iris = datasets.load_iris()
 X = iris.data[:, :2]  # we only take the first two features.
 y = iris.target
 
+for eachFlower in range(len(iris.target)):
+    print("Example %d: label %s, features %s" % (eachFlower, y[eachFlower], X[eachFlower]))
+
+
+
 x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
 y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
 
