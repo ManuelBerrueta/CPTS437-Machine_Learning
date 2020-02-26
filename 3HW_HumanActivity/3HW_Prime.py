@@ -5,6 +5,7 @@ from sklearn.preprocessing import label_binarize
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import auc
 
 # Majority Classifier
 from sklearn.dummy import DummyClassifier
@@ -118,127 +119,11 @@ Classifier is really an either or classifier where literally the majority wins,
 # TODO: ROC Curve - How To
 
 
-""" def get_ROC_Curve_points(y_clf_proba_predicted, y_test):
-    roc_points = {}
-    for prob_threshold in np.arange(0.0, 1.0, 0.05):
-        #y_pred = [0 if ypp[0] >= prob_threshold else 1 for ypp in y_clf_proba_predicted]
-        #tp, fp, tn, fn = compute_confusion_matrix(y_test, y_pred)
-        tp, fp, fn, tp = confusion_matrix(
-            y_testlabels, y_clf_proba_predicted).ravel()
-        tpr = float(tp) / float(tp + fn)
-        fpr = float(fp) / float(fp + tn)
-        if fpr in roc_points:
-            roc_points[fpr].append(tpr)
-        else:
-            roc_points[fpr] = [tpr]
-
-    x1 = []
-    y1 = []
-    for fpr in roc_points:
-        x1.append(fpr)
-        tprs = roc_points[fpr]
-        avg_tpr = sum(tprs) / len(tprs)
-        y1.append(avg_tpr)
-
-    #return x1, y1
-    return roc_points """
-    
-    
-""" def get_ROC_Curve_points(y_pred_proba, y_test):
-    roc_points = {}
-    for prob_threshold in np.arange(0.0, 1.0, 0.05):
-        y_pred = [0 if ypp[0] >=
-        prob_threshold else 1 for ypp in y_pred_proba]
-        tp, fp, tn, fn = confusion_matrix(y_test, y_pred)
-        tpr = float(tp) / float(tp + fn)
-        fpr = float(fp) / float(fp + tn)
-        if fpr in roc_points:
-            roc_points[fpr].append(tpr)
-        else:
-            roc_points[fpr] = [tpr]
-    x1 = []
-    y1 = []
-    for fpr in roc_points:
-        x1.append(fpr)
-        tprs = roc_points[fpr]
-        avg_tpr = sum(tprs) / len(tprs)
-        y1.append(avg_tpr) 
-        
-    return x1, y1 """
 
 
-boundedTree = DecisionTreeClassifier(criterion="entropy", max_depth=2)
-boundedTree.fit(X_trainfeatures, y_traininglabels)
-boundedPrediction = boundedTree.predict(X_testfeatures)
-tn, fp, fn, tp = confusion_matrix(y_testlabels, boundedPrediction).ravel()
-bounded_conf_matrix = confusion_matrix(y_testlabels, boundedPrediction)
-print("Confusion Matrix")
-print("TN: %d | FP: %d | FN: %d | TP: %d" % (tn, fp, fn, tp))
-print(bounded_conf_matrix)
-""" boundScore = boundedTree.predict_proba(X_testfeatures)
-boundScore = np.array(boundScore)
-print("Bounbded Score:")
-print(boundScore)
- """
-
-#! For calculating ROC Curve Points
-boundedPrediction = boundedTree.predict_proba(X_testfeatures)
-boundedPrediction = np.array(boundedPrediction)
-y_testlabels_bin = label_binarize(y_testlabels, neg_label=0, pos_label=1, classes=[0, 1])
-y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
-# * TESTING***
-print("Proba Prediction")
-print(boundedPrediction)
-print("y_test")
-print(y_testlabels_bin)
-
-boundedPrediction = boundedTree.predict(X_testfeatures)
-#bounded_x, bounded_y = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-#points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-#points = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
-#! testing new roc_curve
-x, y = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
-
-print("POINTS")
-print(x, y)
 
 
-unboundedTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
-unboundedTree.fit(X_trainfeatures, y_traininglabels)
-unboundedPrediction = unboundedTree.predict(X_testfeatures)
-tn, fp, fn, tp = confusion_matrix(y_testlabels, unboundedPrediction).ravel()
-unbounded_conf_matrix = confusion_matrix(y_testlabels, unboundedPrediction)
-print("Confusion Matrix")
-print(tn, fp, fn, tp)
-print(unbounded_conf_matrix)
-""" unboundedScore = unboundedTree.predict_proba(X_testfeatures)
-unboundedScore = np.array(unboundedScore)
-print("Unbounbded Score:")
-print(unboundedScore)
- """
-
-#! For calculating ROC Curve Points
-unboundedPrediction = unboundedTree.predict(X_testfeatures)
-#unbounded_x, unbounded_y = get_ROC_Curve_points(unboundedPrediction, y_testlabels)
-points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-
-""" print("Unbounded_x")
-print(unbounded_x)
-print("Unbounded_y")
-print(unbounded_y)
-
-for xpoint in unbounded_x:
-    print(xpoint);
-    
-for ypoint in unbounded_y:
-    print(xpoint); """
-
-print("ROC POINTS TEST")
-print(points)
-
-# SKlearn roc curve for testing
-
-
+#! Plot ROC Curve
 """ plt.title('Receiver Operating Characteristic')
 plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
 plt.plot([0, 1], [0, 1],'r--')
@@ -249,3 +134,27 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.tile("ROC Curve)
 plt.show() """
+
+
+#!TESTING ROC
+
+#y_prob = [0 for _ in range(len(y_testlabels))]
+y_prob = clfTree.predict_proba(X_testfeatures)
+#y_prob = y_prob[:, 1]
+y_testlabels_bin = label_binarize(y_testlabels, neg_label=0, pos_label=1, classes=[0, 1])
+y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
+
+
+fpr, tpr, _ = roc_curve(y_testlabels_bin, y_prob)
+
+
+# plot the roc curve for the model
+plt.plot(fpr, tpr, linestyle='--', label='ROC CURVE')
+# axis labels
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+# show the legend
+plt.legend()
+# show the plot
+plt.show()
+
