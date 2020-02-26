@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import label_binarize
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import confusion_matrix
@@ -66,6 +67,8 @@ def F_Measure(TP, FP, TN, FN):
     F = ((2 * P * R) / (P + R))
     return F
 
+# def get_TPR()
+
 # TODO: Code to macro f-measure using 3-fold cross validation
 
 
@@ -115,19 +118,20 @@ Classifier is really an either or classifier where literally the majority wins,
 # TODO: ROC Curve - How To
 
 
-def get_ROC_Curve_points(y_clf_proba_predicted, y_test):
+""" def get_ROC_Curve_points(y_clf_proba_predicted, y_test):
     roc_points = {}
     for prob_threshold in np.arange(0.0, 1.0, 0.05):
         #y_pred = [0 if ypp[0] >= prob_threshold else 1 for ypp in y_clf_proba_predicted]
         #tp, fp, tn, fn = compute_confusion_matrix(y_test, y_pred)
-        tp, fp, fn, tp = confusion_matrix(y_testlabels, y_clf_proba_predicted).ravel()
+        tp, fp, fn, tp = confusion_matrix(
+            y_testlabels, y_clf_proba_predicted).ravel()
         tpr = float(tp) / float(tp + fn)
         fpr = float(fp) / float(fp + tn)
         if fpr in roc_points:
             roc_points[fpr].append(tpr)
         else:
             roc_points[fpr] = [tpr]
-    
+
     x1 = []
     y1 = []
     for fpr in roc_points:
@@ -135,10 +139,30 @@ def get_ROC_Curve_points(y_clf_proba_predicted, y_test):
         tprs = roc_points[fpr]
         avg_tpr = sum(tprs) / len(tprs)
         y1.append(avg_tpr)
-    
-    #return x1, y1
-    return roc_points
 
+    #return x1, y1
+    return roc_points """
+def get_ROC_Curve_points(y_pred_proba, y_test):
+    roc_points = {}
+    for prob_threshold in np.arange(0.0, 1.0, 0.05):
+        y_pred = [0 if ypp[0] >=
+        prob_threshold else 1 for ypp in y_pred_proba]
+        tp, fp, tn, fn = confusion_matrix(y_test, y_pred)
+        tpr = float(tp) / float(tp + fn)
+        fpr = float(fp) / float(fp + tn)
+        if fpr in roc_points:
+            roc_points[fpr].append(tpr)
+        else:
+            roc_points[fpr] = [tpr]
+    x1 = []
+    y1 = []
+    for fpr in roc_points:
+        x1.append(fpr)
+        tprs = roc_points[fpr]
+        avg_tpr = sum(tprs) / len(tprs)
+        y1.append(avg_tpr)
+        
+    return x1, y1
 
 
 boundedTree = DecisionTreeClassifier(criterion="entropy", max_depth=2)
@@ -154,12 +178,27 @@ boundScore = np.array(boundScore)
 print("Bounbded Score:")
 print(boundScore)
  """
- 
+
 #! For calculating ROC Curve Points
-#boundedPrediction = boundedTree.predict_proba(X_testfeatures)
+boundedPrediction = boundedTree.predict_proba(X_testfeatures)
+boundedPrediction = np.array(boundedPrediction)
+y_testlabels_bin = label_binarize(y_testlabels, neg_label=0, pos_label=1, classes=[0, 1])
+y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
+# * TESTING***
+print("Proba Prediction")
+print(boundedPrediction)
+print("y_test")
+print(y_testlabels_bin)
+
 boundedPrediction = boundedTree.predict(X_testfeatures)
 #bounded_x, bounded_y = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
+#points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
+#points = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
+#! testing new roc_curve
+x, y = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
+
+print("POINTS")
+print(x, y)
 
 
 unboundedTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
@@ -191,7 +230,7 @@ for xpoint in unbounded_x:
     
 for ypoint in unbounded_y:
     print(xpoint); """
-    
+
 print("ROC POINTS TEST")
 print(points)
 
