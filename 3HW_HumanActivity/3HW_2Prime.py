@@ -12,6 +12,7 @@ from sklearn.dummy import DummyClassifier
 
 # Tree
 from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
 
 import matplotlib.pyplot as plt
 from matplotlib import lines
@@ -90,28 +91,71 @@ X2_trainfeatures, X2_testfeatures, y2_traininglabels, y2_testlabels = train_test
 X3_trainfeatures, X3_testfeatures, y3_traininglabels, y3_testlabels = train_test_split(
     X3, y3, test_size=.3, random_state = 7919)
 
+X_train = []
+X_train.append(X1_trainfeatures)
+X_train.append(X2_trainfeatures)
+X_train.append(X3_trainfeatures)
+X_test = []
+X_test.append(X1_testfeatures)
+X_test.append(X2_testfeatures)
+X_test.append(X3_testfeatures)
+y_train = []
+y_train.append(y1_traininglabels)
+y_train.append(y2_traininglabels)
+y_train.append(y3_traininglabels)
+y_test = []
+y_test.append(y1_testlabels)
+y_test.append(y2_testlabels)
+y_test.append(y3_testlabels)
+
+""" for i in range(0,3):
+    clfMajority = DummyClassifier()
+    clfMajority.fit(X_train[i], y_train[i])
+    #clfMajorityPrediction = clfMajority.predict(X_test[i])
+    clfMajorityPrediction = clfMajority.predict_proba(X_test[i])
+    tn, fp, fn, tp = confusion_matrix(y_test[i], clfMajorityPrediction).ravel()
+    clfMajority_conf_matrix = confusion_matrix(y_test[i], clfMajorityPrediction)
+    print("Majority Classifier Fold ", i)
+    print("Recall: " + str(recall(tp,fn)))
+    print("Precission: " + str(precision(tp,fp)))
+    print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
+    print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn))) """
+    
+
+
+#Partition he data = 3 Fold
+#Cross Validation is training on a fold
+
+
+
+#TODO: Train a classifier
+
+
+
 #print("Split data:", X1_trainfeatures, X2_trainfeatures, X3_trainfeatures)
 
 
-#clfMajority = DummyClassifier()
-#clfMajority.fit(X1, y1)
-#clfMajorityPrediction = clfMajority.predict(X1)
-#clfMajorityPrediction = clfMajority.predict_proba(X1)
-#tn, fp, fn, tp = confusion_matrix(y1, clfMajorityPrediction).ravel()
-#clfMajority_conf_matrix = confusion_matrix(y1, clfMajorityPrediction)
-#print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
-#print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn)))
-#
-#
-#clfTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
-#clfTree.fit(X1, y1)
-##clfTreePrediction = clfTree.predict(X1)
-##clfTree_predict_ptroba = clfTree.predict_proba(X1)
-#clfTreePrediction = clfTree.predict_proba(X1)
-#tn, fp, fn, tp = confusion_matrix(y1, clfTreePrediction).ravel()
-#clfTree_conf_matrix = confusion_matrix(y1, clfTreePrediction)
-#print("Accuracy of Decision Tree Classifier: " + str(accuracy(tp, fp, tn, fn)))
-#print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn)))
+clfMajority = DummyClassifier()
+clfMajority.fit(X1_trainfeatures, y1_traininglabels)
+clfMajorityPrediction = clfMajority.predict(X1_testfeatures)
+clfMajorityPrediction = clfMajority.predict_proba(X1_testfeatures)
+tn, fp, fn, tp = confusion_matrix(y1_testlabels, clfMajorityPrediction).ravel()
+clfMajority_conf_matrix = confusion_matrix(y1_testlabels, clfMajorityPrediction)
+print("Majority Classifier Fold 1")
+print("Recall: " + str(recall(tp,fn)))
+print("Precission: " + str(precision(tp,fp)))
+print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
+print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn)))
+
+clfTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
+clfTree.fit(X1, y1)
+#clfTreePrediction = clfTree.predict(X1)
+#clfTree_predict_ptroba = clfTree.predict_proba(X1)
+clfTreePrediction = clfTree.predict_proba(X1)
+tn, fp, fn, tp = confusion_matrix(y1, clfTreePrediction).ravel()
+clfTree_conf_matrix = confusion_matrix(y1, clfTreePrediction)
+print("Accuracy of Decision Tree Classifier: " + str(accuracy(tp, fp, tn, fn)))
+print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn)))
 
 
 
@@ -202,6 +246,8 @@ bounded_conf_matrix = confusion_matrix(y_label, boundedPrediction)
 print("Confusion Matrix")
 print("TN: %d | FP: %d | FN: %d | TP: %d" % (tn, fp, fn, tp))
 print(bounded_conf_matrix)
+
+tree.plot_tree(boundedTree.fit(X_features,y_label))
 
 #tn, fp, fn, tp = calculate_confusion_matrix(bounded_predict_proba, y_label)
 
