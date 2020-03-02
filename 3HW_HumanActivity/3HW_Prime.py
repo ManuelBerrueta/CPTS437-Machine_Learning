@@ -28,8 +28,8 @@ print("Load DATA\n")
 indata = read_data("alldata.csv")
 
 #! Split Features & Target Label from Data
-X_features = indata[:, :-1]     # Get all the data but the last column
-y_label = indata[:, -1]         # Load the 3rd feature6
+#X_features = indata[:, :-1]     # Get all the data but the last column
+#y_label = indata[:, -1]         # Load the 3rd feature6
 
 print("Features:\n", X_features)
 print("Target Labels:\n", y_label)
@@ -121,8 +121,6 @@ Classifier is really an either or classifier where literally the majority wins,
 
 
 
-
-
 #! Plot ROC Curve
 """ plt.title('Receiver Operating Characteristic')
 plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
@@ -145,16 +143,16 @@ y_testlabels_bin = label_binarize(y_testlabels, neg_label=0, pos_label=1, classe
 y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
 
 
-fpr, tpr, _ = roc_curve(y_testlabels_bin, y_prob)
+#fpr, tpr, _ = roc_curve(y_testlabels_bin, y_prob)
 
 
-# plot the roc curve for the model
+# Plot ROC Curve
 plt.plot(fpr, tpr, linestyle='--', label='ROC CURVE')
-# axis labels
+# Display Axis Labels
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-# show the legend
+# Display a Legend
 plt.legend()
-# show the plot
+# Display plot
 plt.show()
 
