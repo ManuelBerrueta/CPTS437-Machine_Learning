@@ -54,9 +54,20 @@ def cross_validate(algo, data, K):
 print("Load DATA\n")
 indata = read_data("alldata.csv")
 
+#attempt to randomize data
+np.random.shuffle(indata)
+
+from scipy.sparse import coo_matrix
+
 #! Split Features & Target Label from Data
 X_features = indata[:, :-1]     # Get all the data but the last column
 y_label = indata[:, -1]         # Load the 3rd feature6
+
+
+#rom sklearn.utils import shuffle
+#X_sparse = coo_matrix(X_features)
+#X_features, X_sparse, y_label = shuffle(X_features, X_sparse, y_label,  random_state=0)
+
 
 #! SPLIT DATA INTO K GROUPS, 3 IN THIS CASE
 X1, X2, X3 = np.split(X_features, [len(X_features)//3, (len(X_features)//3)*2]) # split X into 3 eqally sized arrays
@@ -82,6 +93,26 @@ X3_trainfeatures, X3_testfeatures, y3_traininglabels, y3_testlabels = train_test
 #print("Split data:", X1_trainfeatures, X2_trainfeatures, X3_trainfeatures)
 
 
+#clfMajority = DummyClassifier()
+#clfMajority.fit(X1, y1)
+#clfMajorityPrediction = clfMajority.predict(X1)
+#clfMajorityPrediction = clfMajority.predict_proba(X1)
+#tn, fp, fn, tp = confusion_matrix(y1, clfMajorityPrediction).ravel()
+#clfMajority_conf_matrix = confusion_matrix(y1, clfMajorityPrediction)
+#print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
+#print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn)))
+#
+#
+#clfTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
+#clfTree.fit(X1, y1)
+##clfTreePrediction = clfTree.predict(X1)
+##clfTree_predict_ptroba = clfTree.predict_proba(X1)
+#clfTreePrediction = clfTree.predict_proba(X1)
+#tn, fp, fn, tp = confusion_matrix(y1, clfTreePrediction).ravel()
+#clfTree_conf_matrix = confusion_matrix(y1, clfTreePrediction)
+#print("Accuracy of Decision Tree Classifier: " + str(accuracy(tp, fp, tn, fn)))
+#print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn)))
+
 
 
 
@@ -104,21 +135,109 @@ X3_trainfeatures, X3_testfeatures, y3_traininglabels, y3_testlabels = train_test
 # 10 points mean we use 10 different thresholds
 # from lets say .05 to 0.95
 
+def calculate_confusion_matrix(y_predict_proba, y_label):
+    tn=0
+    fp=0
+    fn=0
+    tp=0
+    sizeOfy = len(y_label)
+    
+    for item in range(0, sizeOfy):
+        if y_label[item] == 0:
+            if y_predict_proba[item] == 0:
+                tp += 1
+            else:
+                fn += 1;
+        else:
+            if y_predict_proba[item] == 1:
+                tn += 1
+            else:
+                fp += 1
 
-clfMajority = DummyClassifier()
-clfMajority.fit(X1_trainfeatures, y1_traininglabels)
-clfMajorityPrediction = clfMajority.predict(X1_testfeatures)
-tn, fp, fn, tp = confusion_matrix(y1_testlabels, clfMajorityPrediction).ravel()
-clfMajority_conf_matrix = confusion_matrix(y1_testlabels, clfMajorityPrediction)
-print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
-print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn)))
+    return tn, fp, fn, tp
 
 
-clfTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
-clfTree.fit(X1_trainfeatures, y1_traininglabels)
-clfTreePrediction = clfTree.predict(X1_testfeatures)
-tn, fp, fn, tp = confusion_matrix(y1_testlabels, clfTreePrediction).ravel()
-clfTree_conf_matrix = confusion_matrix(y1_testlabels, clfTreePrediction)
-print("Accuracy of Decision Tree Classifier: " + str(accuracy(tp, fp, tn, fn)))
-print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn)))
 
+def ROC_Curve_Plot(y_predict_proba, y_Label_Data, tn, fp, fn, tp, title):
+    roc_points = {}
+    for prob_threshold in np.arange(0.0, 1.0, 0.05):
+        y_pred = [0 if ypp[0] >= prob_threshold else 1 for ypp in y_predict_proba]
+        #tp, fp, tn, fn = confusion_matrix(y_test, y_pred)
+        tpr = float(tp) / float(tp + fn)
+        fpr = float(fp) / float(fp + tn)
+        if fpr in roc_points:
+            roc_points[fpr].append(tpr)
+        else:
+            roc_points[fpr] = [tpr]
+    X = []
+    y = []
+    for fpr in roc_points:
+        X.append(fpr)
+        tprs = roc_points[fpr]
+        avg_tpr = sum(tprs) / len(tprs)
+        y.append(avg_tpr) 
+        
+    y.append(0.0)
+    X.append(0.0)
+    plt.plot(X,y)
+    #plt.axis([-.1, 1.5, -.1, 1.5])
+    plt.title(title)
+
+    #plt.plot([0, 1], [0, 1],'r--')
+    plt.xlim([-.2, 1.2])
+    plt.ylim([-.2, 1.2])
+
+
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
+
+
+boundedTree = DecisionTreeClassifier(criterion="entropy", max_depth=2)
+boundedTree.fit(X_features, y_label)
+boundedPrediction = boundedTree.predict(X_features)
+bounded_predict_proba = boundedTree.predict_proba(X_features)
+tn, fp, fn, tp = confusion_matrix(y_label, boundedPrediction).ravel()
+bounded_conf_matrix = confusion_matrix(y_label, boundedPrediction)
+print("Confusion Matrix")
+print("TN: %d | FP: %d | FN: %d | TP: %d" % (tn, fp, fn, tp))
+print(bounded_conf_matrix)
+
+#tn, fp, fn, tp = calculate_confusion_matrix(bounded_predict_proba, y_label)
+
+ROC_Curve_Plot(bounded_predict_proba, y_label, tn, fp, fn, tp, "Bounded Decision Tree ROC Curve")
+
+
+#! For calculating ROC Curve Points
+#boundedPrediction = boundedTree.predict_proba(X_features)
+#boundedPrediction = np.array(boundedPrediction)
+#y_testlabels_bin = label_binarize(y_label, neg_label=0, pos_label=1, classes=[0, 1])
+#y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
+## * TESTING***
+#print("Proba Prediction")
+#print(boundedPrediction)
+#print("y_test")
+#print(y_testlabels_bin)
+
+
+#bounded_x, bounded_y = get_ROC_Curve_points(boundedPrediction, y_testlabels)
+#points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
+#points = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
+
+#! testing new roc_curve
+
+
+
+
+unboundedTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
+unboundedTree.fit(X_features, y_label)
+unboundedPrediction = unboundedTree.predict(X_features)
+unbounded_predict_proba = unboundedTree.predict_proba(X_features)
+tn, fp, fn, tp = confusion_matrix(y_label, unboundedPrediction).ravel()
+unbounded_conf_matrix = confusion_matrix(y_label, unboundedPrediction)
+print("Confusion Matrix")
+print(tn, fp, fn, tp)
+print(unbounded_conf_matrix)
+
+#tn, fp, fn, tp = calculate_confusion_matrix(unbounded_predict_proba, y_label)
+ROC_Curve_Plot(unbounded_predict_proba, y_label, tn, fp, fn, tp, "Bounded Decision Tree ROC Curve")
