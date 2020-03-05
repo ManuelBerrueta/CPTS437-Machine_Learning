@@ -18,10 +18,12 @@ import matplotlib.pyplot as plt
 from matplotlib import lines
 from mpl_toolkits.mplot3d import Axes3D
 
+
 def read_data(fileName):
     data = np.genfromtxt(fileName, delimiter=',', dtype="str")
     # print("DATA:\n", data)
     return data
+
 
 def accuracy(TP, FP, TN, FN):
     P = TP + FN
@@ -43,15 +45,65 @@ def F_Measure(TP, FP, TN, FN):
     F = ((2 * P * R) / (P + R))
     return F
 
-# def get_TPR()
+def compute_confusion_matrix(y_test, y_pred):
+    # Returns entries in confusion matrix (tp, fp, tn, fn) based on comparison of
+    # predictions (y_pred) to correct (y_test).
+    # Assumes two classes: 0 as positive, 1 as negative
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+    n = len(y_test)
+    for i in range(0,n):
+        if y_test[i] == 0:
+            if y_pred[i] == 0:
+                tp += 1
+            else:
+                fn += 1
+        else:
+            if y_pred[i] == 1:
+                tn += 1
+            else:
+                fp += 1
+    return tp, fp, tn, fn
 
-# TODO: Code to macro f-measure using 3-fold cross validation
+
+def ROC_Curve_Plot(y_predict_proba, y_Label_Data, tn, fp, fn, tp, title):
+    roc_points = {}
+    for prob_threshold in np.arange(0.0, 1.0, 0.05):
+        y_pred = [0 if ypp[0] >= prob_threshold else 1 for ypp in y_predict_proba]
+        #tp, fp, tn, fn = confusion_matrix(y_test, y_pred)
+        tpr = float(tp) / float(tp + fn)
+        fpr = float(fp) / float(fp + tn)
+        if fpr in roc_points:
+            roc_points[fpr].append(tpr)
+        else:
+            roc_points[fpr] = [tpr]
+    X = []
+    y = []
+    for fpr in roc_points:
+        X.append(fpr)
+        tprs = roc_points[fpr]
+        avg_tpr = sum(tprs) / len(tprs)
+        y.append(avg_tpr) 
+        
+    y.append(0.0)
+    X.append(0.0)
+    plt.plot(X,y)
+    #plt.axis([-.1, 1.5, -.1, 1.5])
+    plt.title(title)
+
+    #plt.plot([0, 1], [0, 1],'r--')
+    plt.xlim([-.2, 1.2])
+    plt.ylim([-.2, 1.2])
 
 
-def cross_validate(algo, data, K):
-    pass
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
 
 
+#!######################### DATA #########################!#
 print("Load DATA\n")
 indata = read_data("alldata.csv")
 
@@ -91,6 +143,15 @@ X2_trainfeatures, X2_testfeatures, y2_traininglabels, y2_testlabels = train_test
 X3_trainfeatures, X3_testfeatures, y3_traininglabels, y3_testlabels = train_test_split(
     X3, y3, test_size=.3, random_state = 7919)
 
+print(len(y1_testlabels))
+print(len(X1_testfeatures))
+
+print(len(y2_testlabels))
+print(len(X2_testfeatures))
+
+print(len(y3_testlabels))
+print(len(X3_testfeatures))
+
 X_train = []
 X_train.append(X1_trainfeatures)
 X_train.append(X2_trainfeatures)
@@ -108,39 +169,65 @@ y_test.append(y1_testlabels)
 y_test.append(y2_testlabels)
 y_test.append(y3_testlabels)
 
-""" for i in range(0,3):
+
+#*#######################*# 3 Fold Cross Validation #*#######################*#
+#Partition is data = 3 Fold & Cross Validation is training on a fold
+for i in range(0,3):
     clfMajority = DummyClassifier()
     clfMajority.fit(X_train[i], y_train[i])
-    #clfMajorityPrediction = clfMajority.predict(X_test[i])
-    clfMajorityPrediction = clfMajority.predict_proba(X_test[i])
-    tn, fp, fn, tp = confusion_matrix(y_test[i], clfMajorityPrediction).ravel()
-    clfMajority_conf_matrix = confusion_matrix(y_test[i], clfMajorityPrediction)
-    print("Majority Classifier Fold ", i)
-    print("Recall: " + str(recall(tp,fn)))
+    clfMajority_predict = clfMajority.predict(X_test[i])
+    clfMajority_predict_proba = clfMajority.predict_proba(X_test[i])
+    #tn, fp, fn, tp = confusion_matrix(y_test[i], clfMajority_predict).ravel()
+    #clfMajority_conf_matrix = confusion_matrix(y_test[i], clfMajority_predict)
+    tp, fp, tn, fn = compute_confusion_matrix(y_test[i], clfMajority_predict_proba)
+    print("Majority Classifier: Fold ", i)
+    print("Recall:     " + str(recall(tp,fn)))
     print("Precission: " + str(precision(tp,fp)))
-    print("Accuracy of Majority Classifier: " + str(accuracy(tp, fp, tn, fn)))
-    print("F-Measure of Majority Classifier: " + str(F_Measure(tp, fp, tn, fn))) """
-    
+    print("Accuracy:   " + str(accuracy(tp, fp, tn, fn)))
+    print("F-Measure:  " + str(F_Measure(tp, fp, tn, fn)))
 
 
-#Partition he data = 3 Fold
-#Cross Validation is training on a fold
+    clfTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
+    clfTree.fit(X_train[i], y_train[i])
+    clfTree_predict = clfTree.predict(X_test[i])
+    clfTree_predict_ptroba = clfTree.predict_proba(X_test[i])
+    #tn, fp, fn, tp = confusion_matrix(y_test[i], clfTree_predict).ravel()
+    #clfTree_conf_matrix = confusion_matrix(y_test[i], clfTree_predict)
+    tp, fp, tn, fn = compute_confusion_matrix(y_test[i], clfMajority_predict_proba)
+    print("Decision Tree Classifier: Fold ", i)
+    print("Recall:     " + str(recall(tp,fn)))
+    print("Precission: " + str(precision(tp,fp)))
+    print("Accuracy:   " + str(accuracy(tp, fp, tn, fn)))
+    print("F-Measure:  " + str(F_Measure(tp, fp, tn, fn)))
 
 
+'''Second, provide your observations on the results. Why do the two performance
+ measures provide such different results? Why do the two classifiers perform
+  so differently on this task?'''
 
-#TODO: Train a classifier
-
+''' They provide such different results because of their biases and they way
+they categorize the data. They perform so different because the Majority
+Classifier is really an either or classifier where literally the majority wins,
+ where as the Tree will branch out to look at the possibilities of being in one
+  class or another. '''
 
 
 #print("Split data:", X1_trainfeatures, X2_trainfeatures, X3_trainfeatures)
+#print("Length of features and labels")
+#print(len(X1_trainfeatures), len(y1_traininglabels), len(X1_testfeatures), len(y1_testlabels))
 
-
-clfMajority = DummyClassifier()
+""" clfMajority = DummyClassifier()
 clfMajority.fit(X1_trainfeatures, y1_traininglabels)
-clfMajorityPrediction = clfMajority.predict(X1_testfeatures)
-clfMajorityPrediction = clfMajority.predict_proba(X1_testfeatures)
-tn, fp, fn, tp = confusion_matrix(y1_testlabels, clfMajorityPrediction).ravel()
-clfMajority_conf_matrix = confusion_matrix(y1_testlabels, clfMajorityPrediction)
+clfMajority_predict = clfMajority.predict(X1_testfeatures)
+clfMajority_predict_proba = clfMajority.predict_proba(X1_testfeatures)
+("Sizes of y1_test_labes and proba")
+print(len(y1_testlabels))
+print(y1_testlabels)
+print(len(clfMajority_predict_proba))
+print(clfMajority_predict_proba)
+#tn, fp, fn, tp = confusion_matrix(y1_testlabels, clfMajority_predict).ravel()
+tn, fp, fn, tp = calculate_confusion_matrix(clfMajority_predict_proba, y1_testlabels)
+#clfMajority_conf_matrix = confusion_matrix(y1_testlabels, clfMajority_predict_proba)
 print("Majority Classifier Fold 1")
 print("Recall: " + str(recall(tp,fn)))
 print("Precission: " + str(precision(tp,fp)))
@@ -155,9 +242,7 @@ clfTreePrediction = clfTree.predict_proba(X1)
 tn, fp, fn, tp = confusion_matrix(y1, clfTreePrediction).ravel()
 clfTree_conf_matrix = confusion_matrix(y1, clfTreePrediction)
 print("Accuracy of Decision Tree Classifier: " + str(accuracy(tp, fp, tn, fn)))
-print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn)))
-
-
+print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn))) """
 
 
 '''Third, write code to generate and plot an ROC curve
@@ -174,67 +259,7 @@ print("F-Measure of Decision Tree Classifier: " + str(F_Measure(tp, fp, tn, fn))
 #$ probability on x (also called threshold)
 #$ feed data in classifier
 #$ if data is greather than n threshol is in one if not is in the other
-
-#TODO: ROC Curve
 # 10 points mean we use 10 different thresholds
-# from lets say .05 to 0.95
-
-def calculate_confusion_matrix(y_predict_proba, y_label):
-    tn=0
-    fp=0
-    fn=0
-    tp=0
-    sizeOfy = len(y_label)
-    
-    for item in range(0, sizeOfy):
-        if y_label[item] == 0:
-            if y_predict_proba[item] == 0:
-                tp += 1
-            else:
-                fn += 1;
-        else:
-            if y_predict_proba[item] == 1:
-                tn += 1
-            else:
-                fp += 1
-
-    return tn, fp, fn, tp
-
-
-
-def ROC_Curve_Plot(y_predict_proba, y_Label_Data, tn, fp, fn, tp, title):
-    roc_points = {}
-    for prob_threshold in np.arange(0.0, 1.0, 0.05):
-        y_pred = [0 if ypp[0] >= prob_threshold else 1 for ypp in y_predict_proba]
-        #tp, fp, tn, fn = confusion_matrix(y_test, y_pred)
-        tpr = float(tp) / float(tp + fn)
-        fpr = float(fp) / float(fp + tn)
-        if fpr in roc_points:
-            roc_points[fpr].append(tpr)
-        else:
-            roc_points[fpr] = [tpr]
-    X = []
-    y = []
-    for fpr in roc_points:
-        X.append(fpr)
-        tprs = roc_points[fpr]
-        avg_tpr = sum(tprs) / len(tprs)
-        y.append(avg_tpr) 
-        
-    y.append(0.0)
-    X.append(0.0)
-    plt.plot(X,y)
-    #plt.axis([-.1, 1.5, -.1, 1.5])
-    plt.title(title)
-
-    #plt.plot([0, 1], [0, 1],'r--')
-    plt.xlim([-.2, 1.2])
-    plt.ylim([-.2, 1.2])
-
-
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.show()
 
 
 boundedTree = DecisionTreeClassifier(criterion="entropy", max_depth=2)
@@ -246,33 +271,9 @@ bounded_conf_matrix = confusion_matrix(y_label, boundedPrediction)
 print("Confusion Matrix")
 print("TN: %d | FP: %d | FN: %d | TP: %d" % (tn, fp, fn, tp))
 print(bounded_conf_matrix)
-
-tree.plot_tree(boundedTree.fit(X_features,y_label))
-
+#tree.plot_tree(boundedTree.fit(X_features,y_label))
 #tn, fp, fn, tp = calculate_confusion_matrix(bounded_predict_proba, y_label)
-
 ROC_Curve_Plot(bounded_predict_proba, y_label, tn, fp, fn, tp, "Bounded Decision Tree ROC Curve")
-
-
-#! For calculating ROC Curve Points
-#boundedPrediction = boundedTree.predict_proba(X_features)
-#boundedPrediction = np.array(boundedPrediction)
-#y_testlabels_bin = label_binarize(y_label, neg_label=0, pos_label=1, classes=[0, 1])
-#y_testlabels_bin = np.hstack((1 - y_testlabels_bin, y_testlabels_bin))
-## * TESTING***
-#print("Proba Prediction")
-#print(boundedPrediction)
-#print("y_test")
-#print(y_testlabels_bin)
-
-
-#bounded_x, bounded_y = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-#points = get_ROC_Curve_points(boundedPrediction, y_testlabels)
-#points = get_ROC_Curve_points(boundedPrediction, y_testlabels_bin)
-
-#! testing new roc_curve
-
-
 
 
 unboundedTree = DecisionTreeClassifier(criterion="entropy")  # Unbounded
@@ -286,4 +287,4 @@ print(tn, fp, fn, tp)
 print(unbounded_conf_matrix)
 
 #tn, fp, fn, tp = calculate_confusion_matrix(unbounded_predict_proba, y_label)
-ROC_Curve_Plot(unbounded_predict_proba, y_label, tn, fp, fn, tp, "Bounded Decision Tree ROC Curve")
+ROC_Curve_Plot(unbounded_predict_proba, y_label, tn, fp, fn, tp, "Unbounded Decision Tree ROC Curve")
