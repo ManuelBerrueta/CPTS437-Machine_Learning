@@ -1,8 +1,10 @@
 import csv
+import nltk
+nltk.download()
 #!from google.colab import drive
 #!drive.mount('/content/gdrive')
 
-DEBUG = 1
+DEBUG = 0
 BADLINE = 171891
 
 # dictionaries to hold data read from files
@@ -85,16 +87,18 @@ def read_data():
             line_num += 1
 
 
+
+
 def main():
     global movie_title, ranking_limit
     print("Reading data...", flush=True)
     read_data()
-    print("titles", movie_title)
-    print("years", movie_year)
-    print("genres", movie_genres)
+    #print("titles", movie_title)
+    #print("years", movie_year)
+    #print("genres", movie_genres)
     #print("plots", movie_plot)
-    #print("ratings", movie_imdb_rating)
-    #print("user_ratings", user_ratings)
+    #print("\nratings", movie_imdb_rating)
+    print("\nuser_ratings", user_ratings[3])
 
 
 main()
