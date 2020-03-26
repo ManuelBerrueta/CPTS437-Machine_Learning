@@ -60,6 +60,8 @@ print(type(newsgroups.data))
 tfidf_transformer = TfidfTransformer()
 X_tfidf = tfidf_transformer.fit_transform(X_counts)
 
+print(newsgroups.target)
+
 # train a naive Bayes classifier on data
 clf = MultinomialNB().fit(X_tfidf, newsgroups.target)
 scores = cross_val_score(clf, X_tfidf, newsgroups.target, cv=3)
