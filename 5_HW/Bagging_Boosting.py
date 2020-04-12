@@ -1,9 +1,13 @@
 import numpy as np
+import pandas as pd
+from math import log
+from statistics import mean
 import random
 from sklearn import metrics
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+#from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.datasets import load_breast_cancer
 
@@ -57,7 +61,7 @@ class BaggingClassifier():
         """
 
         data_set_size = len(X)
-        print(f"Len of dataset={data_set_size}")
+        #print(f"Len of dataset={data_set_size}")
         X_train = []
         y_train = []
         for i in range(0, data_set_size):
@@ -113,6 +117,64 @@ class BaggingClassifier():
         return accuracy(tp, fp, tn, fn)
 
 
+class BoostingClassifier():
+
+    def __init__(self, classifierlist,):
+        self.classifierlist = classifierlist
+        self.weighted_clf_list = None
+        self.alpha_list = None
+        self.accuracy = []
+   
+    
+    def fit(self, X, y):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33, random_state=3)
+
+        alphaList = []
+        temp_y = y
+        weight_control = pd.DataFrame(temp_y)
+        #weight_control = {}
+        weight_control['weight'] = 381 #(1 / len(y))
+        #weight_control['weight'] = (381,)
+        weighted_clf_list = []
+
+        for clf in self.classifierlist:
+            clf.fit(X_train, y_train, sample_weight=np.array(weight_control['weight']))
+
+            weighted_clf_list.append(clf)
+
+            y_predict = clf.predict(X_test)
+            score = clf.score(X, y)
+            weight_control['predictions'] = y_predict
+            weight_control['learning'] = np.where(weight_control['predictions'] == weight_control['target'],1,0)
+            weight_control['misclassified'] = np.where(weight_control['predictions'] != weight_control['target'],1,0)
+
+            calculated_accuracy = sum(weight_control['learning'])/len(weight_control['learning'])
+            misclassification = sum(weight_control['misclassified'])/len(weight_control['misclassified'])
+
+
+            error = np.sum(weight_control['weights']*weight_control['misclassified'])/np.sum(weight_control['weights'])
+            
+            error = 1 - error
+            alpha = .5 * float(log(((1 - error) / error)))
+            alphaList.append(alpha)
+
+            weight_control['weights'] *= np.exp(alpha*weight_control['misclassified'])
+
+        self.weighted_clf_list = weighted_clf_list
+        self.alpha_list = alphaList
+
+    def predict(self, X_test, y_test):
+        accuracy_List = []
+        predicts = []
+
+        for each_alpha, clf in zip(self.alpha_list, self.weighted_clf_list):
+            pred = each_alpha * clf.predict(X_test)
+            predicts.append(pred)
+
+            self.accuracy.append(np.sum(np.sign(np.array(predicts),axis=0) == y_test) / len(predicts[0]))
+        
+        self.predict = np.sign(np.sum(np.array(predicts), axis=0))
+
 
 if __name__ == "__main__":
     bc = load_breast_cancer()
@@ -145,6 +207,11 @@ if __name__ == "__main__":
     print(rating)
 
     
+    base_score = []
+    bagging_score = []
+    boosting_score = []
+    combination_score = []
+
     
     #! Base classifier alone
     clf_base = DecisionTreeClassifier()
@@ -159,7 +226,27 @@ if __name__ == "__main__":
     print("Bagging Accuracy = ", metrics.accuracy_score(y_test, y_predicted))
 
     #! Base classifier enhanced with boosting
+    clf_boosting = BoostingClassifier(clfList)
+    clf_boosting.fit(X,y)
+    clf_boosting.predict(X_test, y_test)
+    print(f"Boosting Accuracy = {clf_boosting.accuracy[-1]*100}")
 
     #! Base classifier enhanced with both bagging and boosting
-    
+    boost_bagging_list = []
 
+    for i in range(0,6):
+        clf_bagg = BaggingClassifier(clfList)
+        clf_bagg.fit(X_train, y_train)
+        y_predicted = clf_bagg.predict(X_test)
+        boost_bagging_list.append(clf_bagg)
+    
+    for i in range(0,6):
+        clf_boost = BoostingClassifier(boost_bagging_list)
+        clf_boost.fit(X,y)
+        clf_boost.predict(X_test, y_test)
+        boost_bagging_list.append(clf_boost)
+
+    meanList = []
+    for eachCombination in boost_bagging_list:
+        meanList.append(eachCombination.predict(X_test, y_test))
+    print(f"Boosting & Bagging Combination = {mean(meanList)}")    
